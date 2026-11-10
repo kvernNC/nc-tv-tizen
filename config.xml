@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets"
-        id="http://local/nctv" version="1.0.0" viewmodes="maximized">
-    <tizen:application id="NcTvLive0.NcTv" package="NcTvLive0" required_version="2.3"/>
+        id="http://local/nctv" version="1.0.1" viewmodes="fullscreen">
+    <tizen:application id="NcTvLiveNC.NcTv" package="NcTvLiveNC" required_version="2.3"/>
     <name>NC TV</name>
     <description>Direct de NC La 1ère sur TV Tizen</description>
     <content src="index.html"/>
     <icon src="icon.png"/>
+    <tizen:metadata key="http://tizen.org/metadata/app_ui_type/base_screen_resolution" value="fullscreen"/>
     <feature name="http://tizen.org/feature/screen.size.all"/>
 
     <access origin="*" subdomains="true"/>
@@ -15,9 +16,8 @@
     <tizen:privilege name="http://tizen.org/privilege/internet"/>
     <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
     <tizen:privilege name="http://developer.samsung.com/privilege/avplay"/>
-    <tizen:privilege name="http://developer.samsung.com/privilege/network.public"/>
 
-    <tizen:profile name="tv-samsung"/>
+    <tizen:profile name="tv"/>
     <tizen:setting screen-orientation="landscape" context-menu="disable"
                    background-support="disable" encryption="disable"
                    install-location="auto" hwkey-event="enable"/>
