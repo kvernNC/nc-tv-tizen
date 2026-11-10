@@ -29,14 +29,14 @@ var ParaTV = (function () {
       var l = lines[i].trim();
       if (l.indexOf('#EXTINF') === 0) {
         var name = l.substring(l.lastIndexOf(',') + 1);
-        var chno = /tvg-chno="(\d+)"/.exec(l), sfr = /epg-s="(\d+)"/.exec(l);
-        cur = { name: cleanName(name), key: simplify(name), chno: chno ? +chno[1] : 999, sfr: sfr && sfr[1] };
+        var chno = /tvg-chno="(\d+)"/.exec(l), sfr = /epg-s="(\d+)"/.exec(l), logo = /tvg-logo="([^"]+)"/.exec(l);
+        cur = { name: cleanName(name), key: simplify(name), chno: chno ? +chno[1] : 999, sfr: sfr && sfr[1], logo: logo && logo[1] };
         ua = null;
       } else if (l.indexOf('#EXTVLCOPT:http-user-agent=') === 0) {
         ua = l.split('=').slice(1).join('=');
       } else if (l && l[0] !== '#' && cur) {
         if (PARATV_SKIP.indexOf(cur.key) < 0) {
-          if (!byKey[cur.key]) { byKey[cur.key] = { name: cur.name, chno: cur.chno, sfr: cur.sfr, sources: [] }; list.push(byKey[cur.key]); }
+          if (!byKey[cur.key]) { byKey[cur.key] = { name: cur.name, chno: cur.chno, sfr: cur.sfr, logo: cur.logo, sources: [] }; list.push(byKey[cur.key]); }
           if (!byKey[cur.key].sfr) byKey[cur.key].sfr = cur.sfr;
           byKey[cur.key].sources.push({ url: l, ua: ua });
           byKey[cur.key].chno = Math.min(byKey[cur.key].chno, cur.chno);
@@ -75,6 +75,7 @@ var ParaTV = (function () {
         return parse(m3u).map(function (c) {
           return {
             name: c.name,
+            logo: c.logo,
             epg: c.sfr ? { sfr: c.sfr } : null,
             refreshMs: 0, // en cas d'expiration : erreur -> nouvel essai -> lien frais relu
             resolve: function () {

@@ -35,7 +35,11 @@ var Epg = (function () {
             if (p.seasonNumber || p.episodeNumber) {
               sub = (p.seasonNumber ? 'S' + p.seasonNumber : '') + (p.episodeNumber ? 'E' + p.episodeNumber : '') + (sub ? ' · ' + sub : '');
             }
-            return { title: p.title, subtitle: sub, start: p.startDate, end: p.endDate };
+            var img = null, imgs = p.images || [];
+            for (var k = 0; k < imgs.length && !img; k++) if (imgs[k].type === 'landscape' && !imgs[k].withTitle) img = imgs[k].url;
+            for (k = 0; k < imgs.length && !img; k++) if (imgs[k].type === 'landscape') img = imgs[k].url;
+            if (img) img = img.replace(/^http:/, 'https:') + '?w=480';
+            return { title: p.title, subtitle: sub, start: p.startDate, end: p.endDate, image: img };
           });
         }
         return out;

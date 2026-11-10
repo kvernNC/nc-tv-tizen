@@ -3,6 +3,8 @@
 Une application Tizen qui ouvre directement le direct de **NC La 1ère** en plein écran,
 sans passer par le site web, avec quelques chaînes France TV et une chaîne Taratata en plus.
 
+![Mosaïque](docs/mosaique.png)
+
 ## Chaînes
 
 | N° | Chaîne | État |
@@ -19,9 +21,20 @@ sans passer par le site web, avec quelques chaînes France TV et une chaîne Tar
 (État vérifié depuis la Calédonie. RMC Story, RMC Découverte et Canal 32 ne marchent pas
 depuis la Calédonie et sont retirés via `PARATV_SKIP`.)
 
+## Mosaïque
+
+Touche **OK** : mosaïque de toutes les chaînes, 5 par ligne. Chaque case montre l'image du
+programme en cours, le logo, le titre, les horaires et une barre de progression (mis à jour
+toutes les 30 s). La chaîne en cours continue derrière.
+◀ ▶ ▲ ▼ pour choisir, CH+/CH− pour changer de page, OK pour regarder, RETOUR pour fermer.
+
+Une vraie mosaïque vidéo façon Free n'est pas possible sur la TV : elle ne décode qu'un ou
+deux flux à la fois (chez Free, la mosaïque est une seule vidéo préparée sur leurs serveurs).
+Les images viennent du guide SFR (NC La 1ère et Taratata affichent leur logo).
+
 ## Programme en cours
 
-Le bandeau (au changement de chaîne, ou avec OK / INFO) affiche l'émission en cours,
+Le bandeau (au changement de chaîne, ou avec INFO) affiche l'émission en cours,
 ses horaires **à l'heure de la TV** et, si dispo, saison/épisode et titre de l'épisode :
 - **NC La 1ère** : page « direct TV » de la1ere.franceinfo.fr (rafraîchie toutes les 5 min) ;
 - **les autres chaînes** : guide des programmes public de SFR TV (un fichier par jour,
@@ -67,7 +80,8 @@ déjà présentes plus haut sont ignorées. Pour en retirer d'autres, ajouter le
 | CH+ / CH− / ◀ ▶ ▲ ▼ | Chaîne suivante/précédente |
 | 0 à 9 | Aller directement à la chaîne n° (1 ou 2 chiffres, ex. 1 puis 1 → chaîne 11) |
 | ⏩ / ▶❚❚ | Taratata : passer à la prestation suivante |
-| OK / INFO | Affiche la chaîne et le programme en cours |
+| OK | Ouvre la mosaïque des chaînes |
+| INFO | Affiche la chaîne et le programme en cours |
 | RETOUR / EXIT | Quitter |
 
 ## Tester depuis ton PC

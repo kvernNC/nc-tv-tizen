@@ -62,33 +62,44 @@ var SIMULCAST_P = 'https://simulcast-p.ftven.fr/simulcast/';
 var SIMULCAST_MEDIAS = 'https://simulcast-frmedias-p.ftven.fr/simulcast/';
 
 var CHANNEL_LIST = [
-  { name: 'NC La 1ère', epg: { la1ere: 'nouvellecaledonie' }, urls: [
+  { name: 'NC La 1ère', logo: 'https://i.imgur.com/BJgNq21.png',
+    epg: { la1ere: 'nouvellecaledonie' }, urls: [
       SIMULCAST + '1er_Nouvelle_Caledonie/hls_1er_NC/1er_Nouvelle_Caledonie.m3u8',        // locale (devinée)
       SIMULCAST + '1er_Nouvelle_Caledonie/hls_nc_1er_NC/1er_Nouvelle_Caledonie.m3u8',     // locale (devinée)
       SIMULCAST + '1er_Nouvelle_Caledonie/hls_local_1er_NC/1er_Nouvelle_Caledonie.m3u8',  // locale (devinée)
       SIMULCAST + '1er_Nouvelle_Caledonie/hls_monde_1er_NC/1er_Nouvelle_Caledonie.m3u8'   // monde (vérifiée)
   ] },
-  { name: 'France 2',        epg: { sfr: '4' },    urls: [SIMULCAST_P + 'France_2/hls_fr2/France_2.m3u8'] },                // vérifiée depuis la Calédonie
-  { name: 'France 3',        epg: { sfr: '80' },   urls: [SIMULCAST_P + 'France_3/hls_fr3/France_3.m3u8'] },                // vérifiée
-  { name: 'France 4',        epg: { sfr: '78' },   urls: [SIMULCAST_P + 'France_4/hls_fr4/France_4.m3u8'] },                // vérifiée
-  { name: 'France 5',        epg: { sfr: '47' },   urls: [SIMULCAST_P + 'France_5/hls_fr5/France_5.m3u8'] },                // vérifiée
-  { name: 'franceinfo',      epg: { sfr: '2111' }, urls: [SIMULCAST_P + 'France_Info/hls_monde_frinfo/France_Info.m3u8'] }, // vérifiée
-  { name: 'Taratata', taratata: true },  // prestations au hasard (voir js/taratata.js)
-  { name: 'Arte',            epg: { sfr: '111' },  urls: [SIMULCAST_MEDIAS + 'Arte/hls_arte/Arte.m3u8'] },                  // vérifiée
-  { name: 'TV5 Monde',       epg: { sfr: '205' },  urls: [SIMULCAST_MEDIAS + 'TV5_Monde/hls_tv5_monde/TV5_Monde.m3u8'] },   // vérifiée
-  { name: 'France 24',       epg: { sfr: '529' },  urls: [SIMULCAST_MEDIAS + 'France_24/hls_fr24/France_24.m3u8'] }         // vérifiée
+  { name: 'France 2',        logo: 'https://i.imgur.com/EbEL7U8.png',
+    epg: { sfr: '4' },    urls: [SIMULCAST_P + 'France_2/hls_fr2/France_2.m3u8'] },                // vérifiée depuis la Calédonie
+  { name: 'France 3',        logo: 'https://i.imgur.com/PWbIICf.png',
+    epg: { sfr: '80' },   urls: [SIMULCAST_P + 'France_3/hls_fr3/France_3.m3u8'] },                // vérifiée
+  { name: 'France 4',        logo: 'https://i.imgur.com/9GibmAI.png',
+    epg: { sfr: '78' },   urls: [SIMULCAST_P + 'France_4/hls_fr4/France_4.m3u8'] },                // vérifiée
+  { name: 'France 5',        logo: 'https://i.imgur.com/h0TcqHE.png',
+    epg: { sfr: '47' },   urls: [SIMULCAST_P + 'France_5/hls_fr5/France_5.m3u8'] },                // vérifiée
+  { name: 'franceinfo',      logo: 'https://i.imgur.com/hwaz7xG.png',
+    epg: { sfr: '2111' }, urls: [SIMULCAST_P + 'France_Info/hls_monde_frinfo/France_Info.m3u8'] }, // vérifiée
+  { name: 'Taratata', taratata: true, logo: 'https://mytaratata.com/media/logo/taratata.png' },  // prestations au hasard (voir js/taratata.js)
+  { name: 'Arte',            logo: 'https://static-cdn.tv.sfr.net/data/logos/tv_services/Arte_color.png?h=100',
+    epg: { sfr: '111' },  urls: [SIMULCAST_MEDIAS + 'Arte/hls_arte/Arte.m3u8'] },                  // vérifiée
+  { name: 'TV5 Monde',       logo: 'https://static-cdn.tv.sfr.net/data/logos/tv_services/TV5_Monde_color.png?h=100',
+    epg: { sfr: '205' },  urls: [SIMULCAST_MEDIAS + 'TV5_Monde/hls_tv5_monde/TV5_Monde.m3u8'] },   // vérifiée
+  { name: 'France 24',       logo: 'https://i.imgur.com/yAiTedt.png',
+    epg: { sfr: '529' },  urls: [SIMULCAST_MEDIAS + 'France_24/hls_fr24/France_24.m3u8'] }         // vérifiée
 ];
 
 // Jeton valable ~6 h : relance propre toutes les 5 h.
 var CHANNELS = CHANNEL_LIST.map(function (c) {
   if (c.taratata) return {
     name: 'Taratata',
+    logo: c.logo,
     continuous: true,
     resolve: function () { return Taratata.next(); },
     prefetch: function () { Taratata.prefetch(); }
   };
   return {
     name: c.name,
+    logo: c.logo,
     epg: c.epg,
     refreshMs: 5 * 60 * 60 * 1000,
     resolve: function () {

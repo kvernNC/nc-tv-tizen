@@ -21,7 +21,7 @@
     $('osd-title').textContent = nowTitle;
     $('osd-sub').textContent = '';
     if (!nowTitle) showProgram(CHANNELS[current]);
-    $('osd-hint').textContent = 'CH+/CH− ou ◀ ▶ : changer de chaîne' +
+    $('osd-hint').textContent = 'OK : mosaïque · CH+/CH− : chaîne' +
       (CHANNELS[current].continuous ? ' · ⏩ ou ▶❚❚ : prestation suivante' : '') + ' · RETOUR : quitter';
     $('osd').className = '';
     clearTimeout(osdTimer);
@@ -115,10 +115,18 @@
   }
 
   document.addEventListener('keydown', function (e) {
+    if (Mosaic.isOpen()) {
+      if (Mosaic.key(e.keyCode, KEY)) e.preventDefault();
+      return;
+    }
     switch (e.keyCode) {
       case KEY.CH_UP: case KEY.UP: case KEY.RIGHT: zap(1); break;
       case KEY.CH_DOWN: case KEY.DOWN: case KEY.LEFT: zap(-1); break;
-      case KEY.ENTER: case KEY.INFO: showOsd(); break;
+      case KEY.ENTER:
+        $('osd').className = 'hidden';
+        Mosaic.show(current, goTo);
+        break;
+      case KEY.INFO: showOsd(); break;
       case KEY.FF: case KEY.NEXT: case KEY.PLAY: case KEY.PLAYPAUSE:
         if (CHANNELS[current].continuous) { Player.stop(); start(); } // prestation suivante
         break;
