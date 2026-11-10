@@ -62,22 +62,21 @@ var SIMULCAST_P = 'https://simulcast-p.ftven.fr/simulcast/';
 var SIMULCAST_MEDIAS = 'https://simulcast-frmedias-p.ftven.fr/simulcast/';
 
 var CHANNEL_LIST = [
-  { name: 'NC La 1ère', urls: [
+  { name: 'NC La 1ère', epg: { la1ere: 'nouvellecaledonie' }, urls: [
       SIMULCAST + '1er_Nouvelle_Caledonie/hls_1er_NC/1er_Nouvelle_Caledonie.m3u8',        // locale (devinée)
       SIMULCAST + '1er_Nouvelle_Caledonie/hls_nc_1er_NC/1er_Nouvelle_Caledonie.m3u8',     // locale (devinée)
       SIMULCAST + '1er_Nouvelle_Caledonie/hls_local_1er_NC/1er_Nouvelle_Caledonie.m3u8',  // locale (devinée)
       SIMULCAST + '1er_Nouvelle_Caledonie/hls_monde_1er_NC/1er_Nouvelle_Caledonie.m3u8'   // monde (vérifiée)
   ] },
-  { name: 'France 2',        urls: [SIMULCAST_P + 'France_2/hls_fr2/France_2.m3u8'] },                // à tester (France seulement ?)
-  { name: 'France 3',        urls: [SIMULCAST_P + 'France_3/hls_fr3/France_3.m3u8'] },                // à tester
-  { name: 'France 4',        urls: [SIMULCAST_P + 'France_4/hls_fr4/France_4.m3u8'] },                // à tester
-  { name: 'France 5',        urls: [SIMULCAST_P + 'France_5/hls_fr5/France_5.m3u8'] },                // à tester
-  { name: 'franceinfo',      urls: [SIMULCAST_P + 'France_Info/hls_monde_frinfo/France_Info.m3u8'] }, // vérifiée
+  { name: 'France 2',        epg: { sfr: '4' },    urls: [SIMULCAST_P + 'France_2/hls_fr2/France_2.m3u8'] },                // vérifiée depuis la Calédonie
+  { name: 'France 3',        epg: { sfr: '80' },   urls: [SIMULCAST_P + 'France_3/hls_fr3/France_3.m3u8'] },                // vérifiée
+  { name: 'France 4',        epg: { sfr: '78' },   urls: [SIMULCAST_P + 'France_4/hls_fr4/France_4.m3u8'] },                // vérifiée
+  { name: 'France 5',        epg: { sfr: '47' },   urls: [SIMULCAST_P + 'France_5/hls_fr5/France_5.m3u8'] },                // vérifiée
+  { name: 'franceinfo',      epg: { sfr: '2111' }, urls: [SIMULCAST_P + 'France_Info/hls_monde_frinfo/France_Info.m3u8'] }, // vérifiée
   { name: 'Taratata', taratata: true },  // prestations au hasard (voir js/taratata.js)
-  { name: 'Arte',            urls: [SIMULCAST_MEDIAS + 'Arte/hls_arte/Arte.m3u8'] },                  // à tester
-  { name: 'TV5 Monde',       urls: [SIMULCAST_MEDIAS + 'TV5_Monde/hls_tv5_monde/TV5_Monde.m3u8'] },   // vérifiée
-  { name: 'France 24',       urls: [SIMULCAST_MEDIAS + 'France_24/hls_fr24/France_24.m3u8'] },        // à tester
-  { name: 'Réunion La 1ère', urls: [SIMULCAST + '1er_Reunion/hls_monde_1er_Reu/1er_Reunion.m3u8'] }   // à tester
+  { name: 'Arte',            epg: { sfr: '111' },  urls: [SIMULCAST_MEDIAS + 'Arte/hls_arte/Arte.m3u8'] },                  // vérifiée
+  { name: 'TV5 Monde',       epg: { sfr: '205' },  urls: [SIMULCAST_MEDIAS + 'TV5_Monde/hls_tv5_monde/TV5_Monde.m3u8'] },   // vérifiée
+  { name: 'France 24',       epg: { sfr: '529' },  urls: [SIMULCAST_MEDIAS + 'France_24/hls_fr24/France_24.m3u8'] }         // vérifiée
 ];
 
 // Jeton valable ~6 h : relance propre toutes les 5 h.
@@ -90,6 +89,7 @@ var CHANNELS = CHANNEL_LIST.map(function (c) {
   };
   return {
     name: c.name,
+    epg: c.epg,
     refreshMs: 5 * 60 * 60 * 1000,
     resolve: function () {
       // On essaie d'abord l'adresse qui a marché la dernière fois (zapping plus rapide).

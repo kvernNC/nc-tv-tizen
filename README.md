@@ -7,17 +7,32 @@ sans passer par le site web, avec quelques chaînes France TV et une chaîne Tar
 
 | N° | Chaîne | État |
 |---|---|---|
-| 1 | NC La 1ère | ✅ vérifiée (version « monde » ; versions locales essayées d'abord) |
-| 2 à 5 | France 2, 3, 4, 5 | ❓ refusées hors de France, à tester depuis la Calédonie |
-| 6 | franceinfo | ✅ vérifiée |
-| 7 | Taratata | ✅ prestations au hasard de mytaratata.com, en continu, jusqu'en 720p |
-| 8 | Arte | ❓ à tester |
-| 9 | TV5 Monde | ✅ vérifiée |
-| 10 | France 24 | ❓ à tester |
-| 11 | Réunion La 1ère | ❓ à tester |
-| 12 et + | Chaînes ParaTV : TF1, LCP, TMC, TFX, Gulli, BFM TV, CNews, LCI, CStar, T18, NOVO19, TF1 Séries Films, L'Équipe, RMC Story, RMC Découverte, Canal 32, Sport en France, Le Figaro TV, Canal+ en clair, Public Sénat, Europe 1 TV… | ❓ à tester |
+| 1 | NC La 1ère | ✅ |
+| 2 à 5 | France 2, 3, 4, 5 | ✅ |
+| 6 | franceinfo | ✅ |
+| 7 | Taratata (prestations au hasard, en continu) | ✅ |
+| 8 | Arte | ✅ |
+| 9 | TV5 Monde | ✅ |
+| 10 | France 24 | ✅ |
+| 11 et + | Chaînes ParaTV : TF1, LCP, TMC, TFX, Gulli, BFM TV, CNews, LCI, CStar (son un peu long à venir), T18, NOVO19, TF1 Séries Films, L'Équipe, Sport en France, Le Figaro TV, Canal+ en clair, Public Sénat, Europe 1 TV… | ✅ |
 
-**Chaînes 1 à 11** : définies dans `CHANNEL_LIST` (`js/channels.js`), une ligne `{ name, urls }`
+(État vérifié depuis la Calédonie. RMC Story, RMC Découverte et Canal 32 ne marchent pas
+depuis la Calédonie et sont retirés via `PARATV_SKIP`.)
+
+## Programme en cours
+
+Le bandeau (au changement de chaîne, ou avec OK / INFO) affiche l'émission en cours,
+ses horaires **à l'heure de la TV** et, si dispo, saison/épisode et titre de l'épisode :
+- **NC La 1ère** : page « direct TV » de la1ere.franceinfo.fr (rafraîchie toutes les 5 min) ;
+- **les autres chaînes** : guide des programmes public de SFR TV (un fichier par jour,
+  ~1,4 Mo, chargé une fois puis gardé en mémoire). L'identifiant SFR de chaque chaîne est
+  dans `epg: { sfr: '…' }` (`js/channels.js`) ou dans l'attribut `epg-s` de la playlist ParaTV ;
+- **Taratata** : artiste et titre de la prestation.
+
+Pas de programme pour NOVO19, Sport en France, Public Sénat, LCP-Public Sénat et Europe 1 TV
+(pas d'identifiant SFR dans ParaTV).
+
+**Chaînes 1 à 10** : définies dans `CHANNEL_LIST` (`js/channels.js`), une ligne `{ name, urls }`
 par chaîne France TV « simulcast ». Pour en retirer une, supprimer sa ligne.
 
 **Chaîne Taratata** : choisit une émission au hasard, puis une prestation (sans les
@@ -25,7 +40,7 @@ interviews), affiche l'artiste et le titre, et prépare la suivante pendant la l
 vidéos sont hébergées par mytaratata.com sur `media.grandprix.tv` (malgré le nom, c'est bien
 leur hébergeur vidéo), avec le MP4 de `videos.mytaratata.com` en secours.
 
-**Chaînes ParaTV (12 et +)** : au démarrage, l'app télécharge la playlist « France » du
+**Chaînes ParaTV (11 et +)** : au démarrage, l'app télécharge la playlist « France » du
 projet communautaire [ParaTV](https://github.com/Paradise-91/ParaTV), qui régénère plusieurs
 fois par jour des liens signés (ceux de TF1 durent ~4 h). À chaque lancement d'une chaîne,
 l'app relit le fichier ParaTV pour avoir le lien le plus récent ; si une chaîne a plusieurs
@@ -50,9 +65,9 @@ déjà présentes plus haut sont ignorées. Pour en retirer d'autres, ajouter le
 | Touche | Action |
 |---|---|
 | CH+ / CH− / ◀ ▶ ▲ ▼ | Chaîne suivante/précédente |
-| 0 à 9 | Aller directement à la chaîne n° (1 ou 2 chiffres, ex. 1 puis 2 → chaîne 12) |
+| 0 à 9 | Aller directement à la chaîne n° (1 ou 2 chiffres, ex. 1 puis 1 → chaîne 11) |
 | ⏩ / ▶❚❚ | Taratata : passer à la prestation suivante |
-| OK / INFO | Affiche le nom de la chaîne |
+| OK / INFO | Affiche la chaîne et le programme en cours |
 | RETOUR / EXIT | Quitter |
 
 ## Tester depuis ton PC

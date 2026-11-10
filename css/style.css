@@ -9,6 +9,8 @@ html, body { margin: 0; width: 1920px; height: 1080px; background: #000; overflo
   padding: 10px 36px; border-radius: 16px; background: rgba(0,0,0,.72); }
 #osd-title { margin-top: 8px; font-size: 36px; color: #ffd200; max-width: 1600px; }
 #osd-title:empty { display: none; }
+#osd-sub { margin-top: 6px; font-size: 28px; color: #ddd; max-width: 1600px; }
+#osd-sub:empty { display: none; }
 #osd-hint { margin-top: 10px; font-size: 26px; color: #bbb; }
 #status { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
   display: flex; align-items: center; gap: 24px; padding: 28px 44px; border-radius: 16px;

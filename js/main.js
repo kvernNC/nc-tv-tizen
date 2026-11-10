@@ -19,11 +19,22 @@
   function showOsd() {
     $('osd-channel').textContent = (current + 1) + '  ' + CHANNELS[current].name;
     $('osd-title').textContent = nowTitle;
+    $('osd-sub').textContent = '';
+    if (!nowTitle) showProgram(CHANNELS[current]);
     $('osd-hint').textContent = 'CH+/CH− ou ◀ ▶ : changer de chaîne' +
       (CHANNELS[current].continuous ? ' · ⏩ ou ▶❚❚ : prestation suivante' : '') + ' · RETOUR : quitter';
     $('osd').className = '';
     clearTimeout(osdTimer);
-    osdTimer = setTimeout(function () { $('osd').className = 'hidden'; }, 4000);
+    osdTimer = setTimeout(function () { $('osd').className = 'hidden'; }, 6000);
+  }
+
+  // Programme en cours (guide SFR / page La 1ère), affiché dès qu'il arrive.
+  function showProgram(ch) {
+    Epg.now(ch).then(function (p) {
+      if (!p || CHANNELS[current] !== ch || nowTitle) return;
+      $('osd-title').textContent = p.title;
+      $('osd-sub').textContent = Epg.hhmm(p.start) + ' – ' + Epg.hhmm(p.end) + (p.subtitle ? '  ·  ' + p.subtitle : '');
+    });
   }
 
   function clearTimers() { clearTimeout(refreshTimer); clearTimeout(retryTimer); }
