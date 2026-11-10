@@ -127,10 +127,6 @@ tizen install -n "NC TV.wgt" -- .buildResult
 
 ## Publier une nouvelle version
 
-Pousser un tag `v…` : GitHub fabrique le `.wgt` (avec ce numéro de version) et publie la
-release automatiquement (`.github/workflows/release.yml`).
-
-```
-git tag v1.0.1
-git push origin v1.0.1
-```
+Changer le numéro dans `config.xml` (`version="1.0.1"`), commiter et pousser sur `main` :
+GitHub fabrique le `.wgt` et publie la release `v1.0.1` automatiquement
+(`.github/workflows/release.yml`). Un push sans changement de version ne publie rien.
