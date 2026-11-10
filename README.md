@@ -1,7 +1,7 @@
 # NC TV — direct NC La 1ère sur TV Samsung (Tizen)
 
 Une application Tizen qui ouvre directement le direct de **NC La 1ère** en plein écran,
-sans passer par le site web, avec quelques chaînes France TV en plus.
+sans passer par le site web, avec quelques chaînes France TV et une chaîne Taratata en plus.
 
 ## Chaînes
 
@@ -13,6 +13,12 @@ sans passer par le site web, avec quelques chaînes France TV en plus.
 | 4 | France 24 | ❓ refusée depuis l'étranger, à tester depuis la Calédonie |
 | 5 | Arte | ❓ idem |
 | 6 | Réunion La 1ère | ❓ idem |
+| 7 | Taratata | ✅ vérifiée : prestations au hasard de mytaratata.com (1994 → aujourd'hui), enchaînées en continu, jusqu'en 720p |
+
+La chaîne Taratata choisit une émission au hasard, puis une prestation (sans les interviews),
+affiche l'artiste et le titre, et prépare la suivante pendant la lecture. Les vidéos sont
+hébergées par mytaratata.com sur le serveur `media.grandprix.tv` (malgré le nom, c'est bien
+leur hébergeur vidéo), avec le MP4 de `videos.mytaratata.com` en secours.
 
 **Ajouter une chaîne** : une ligne `{ name, urls }` dans `CHANNEL_LIST` (`js/channels.js`).
 Ça ne marche que pour les chaînes servies en « simulcast » par France TV (pas France 2/3/5,
@@ -36,6 +42,7 @@ marche pas chez toi, supprimer sa ligne. Puis refaire le `.wgt` (voir plus bas).
 |---|---|
 | CH+ / CH− / ◀ ▶ ▲ ▼ | Chaîne suivante/précédente |
 | 1 à 9 | Aller directement à la chaîne n° |
+| ⏩ / ▶❚❚ | Taratata : passer à la prestation suivante |
 | OK / INFO | Affiche le nom de la chaîne |
 | RETOUR / EXIT | Quitter |
 

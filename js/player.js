@@ -24,7 +24,7 @@ var Player = (function () {
       webapis.avplay.setListener({
         onbufferingstart: function () { cb.onBuffering && cb.onBuffering(true); },
         onbufferingcomplete: function () { cb.onBuffering && cb.onBuffering(false); },
-        onstreamcompleted: function () { cb.onError && cb.onError(new Error('Fin du flux')); },
+        onstreamcompleted: function () { cb.onEnded ? cb.onEnded() : (cb.onError && cb.onError(new Error('Fin du flux'))); },
         onerror: function (type) { cb.onError && cb.onError(new Error('Erreur lecteur : ' + type)); },
         onevent: function () {}
       });
@@ -49,6 +49,7 @@ var Player = (function () {
       obj.parentNode.replaceChild(video, obj);
       video.addEventListener('waiting', function () { cb.onBuffering && cb.onBuffering(true); });
       video.addEventListener('playing', function () { cb.onBuffering && cb.onBuffering(false); cb.onPlaying && cb.onPlaying(); });
+      video.addEventListener('ended', function () { cb.onEnded && cb.onEnded(); });
       video.addEventListener('error', function () { cb.onError && cb.onError(new Error('Erreur <video>')); });
     }
     video.src = url;

@@ -87,3 +87,11 @@ var CHANNELS = CHANNEL_LIST.map(function (c) {
     }
   };
 });
+
+// Chaîne Taratata : prestations au hasard, enchaînées en continu.
+CHANNELS.push({
+  name: 'Taratata',
+  continuous: true,
+  resolve: function () { return Taratata.next(); },
+  prefetch: function () { Taratata.prefetch(); }
+});
