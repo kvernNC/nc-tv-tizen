@@ -12,13 +12,15 @@ var Player = (function () {
     try { webapis.avplay.close(); } catch (e) {}
   }
 
-  function play(url, callbacks) {
+  function play(url, callbacks, opts) {
     cb = callbacks || {};
+    opts = opts || {};
     if (!hasAvplay) return playHtml5(url);
 
     closeAv();
     try {
       webapis.avplay.open(url);
+      if (opts.ua) { try { webapis.avplay.setStreamingProperty('USER_AGENT', opts.ua); } catch (e) {} }
       webapis.avplay.setDisplayRect(0, 0, 1920, 1080);
       webapis.avplay.setDisplayMethod('PLAYER_DISPLAY_MODE_LETTER_BOX');
       webapis.avplay.setListener({

@@ -39,6 +39,7 @@
     ch.resolve().then(function (res) {
       if (token !== playToken) return;
       var url = typeof res === 'string' ? res : res.url;
+      var ua = res && res.ua;
       nowTitle = (res && res.title) || '';
       Player.play(url, {
         onBuffering: function (on) { if (token === playToken) on ? showStatus('Chargement…') : hideStatus(); },
@@ -53,7 +54,7 @@
         },
         onEnded: ch.continuous ? function () { if (token === playToken) start(); } : null,
         onError: function (e) { if (token === playToken) scheduleRetry(e); }
-      });
+      }, { ua: ua });
     }).catch(function (e) { if (token === playToken) scheduleRetry(e); });
   }
 
@@ -76,6 +77,26 @@
     start();
   }
 
+  // Saisie du numéro de chaîne : 1 ou 2 chiffres, validé après 1,5 s (ou dès qu'il
+  // ne peut plus y avoir d'autre chiffre).
+  var numBuf = '', numTimer = null;
+  function typeDigit(d) {
+    numBuf += d;
+    $('numbuf').textContent = numBuf;
+    $('numbuf').className = '';
+    clearTimeout(numTimer);
+    var n = +numBuf;
+    if (numBuf.length >= 2 || n * 10 > CHANNELS.length) commitNumber();
+    else numTimer = setTimeout(commitNumber, 1500);
+  }
+  function commitNumber() {
+    clearTimeout(numTimer);
+    var n = +numBuf;
+    numBuf = '';
+    $('numbuf').className = 'hidden';
+    if (n >= 1 && n <= CHANNELS.length) goTo(n - 1);
+  }
+
   function quit() {
     clearTimers();
     Player.stop();
@@ -92,7 +113,7 @@
         break;
       case KEY.BACK: case KEY.EXIT: quit(); break;
       default:
-        if (e.keyCode >= 49 && e.keyCode <= 57) { goTo(e.keyCode - 49); break; } // touches 1 à 9
+        if (e.keyCode >= 48 && e.keyCode <= 57) { typeDigit(e.keyCode - 48); break; } // 0 à 9
         return;
     }
     e.preventDefault();
@@ -107,10 +128,15 @@
 
   window.addEventListener('load', function () {
     try {
-      ['ChannelUp', 'ChannelDown', 'Info', 'MediaFastForward', 'MediaTrackNext', 'MediaPlay', 'MediaPlayPause', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(function (k) {
+      ['ChannelUp', 'ChannelDown', 'Info', 'MediaFastForward', 'MediaTrackNext', 'MediaPlay', 'MediaPlayPause', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(function (k) {
         tizen.tvinputdevice.registerKey(k);
       });
     } catch (e) { /* hors TV */ }
     start();
+    // Chaînes ParaTV ajoutées à la suite, en arrière-plan.
+    ParaTV.load().then(function (list) {
+      list.forEach(function (c) { CHANNELS.push(c); });
+      console.log('[nctv] ' + list.length + ' chaînes ParaTV ajoutées');
+    }).catch(function (e) { console.log('[nctv] ParaTV indisponible : ' + e.message); });
   });
 })();

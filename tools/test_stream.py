@@ -22,6 +22,27 @@ def channels():
         urls = [consts[c] + path for c, path in re.findall(r"(\w+) \+ '([^']+)'", body)]
         yield name, urls
 
+def check_paratv():
+    m3u = get("https://raw.githubusercontent.com/Paradise-91/ParaTV/main/playlists/paratv/group/france/france.m3u")
+    name, ua = None, UA["User-Agent"]
+    for line in m3u.splitlines():
+        line = line.strip()
+        if line.startswith("#EXTINF"):
+            name = re.sub(r"^\d+\.\s*", "", line.rsplit(",", 1)[-1]); ua = UA["User-Agent"]
+        elif line.startswith("#EXTVLCOPT:http-user-agent="):
+            ua = line.split("=", 1)[1]
+        elif line and not line.startswith("#") and name:
+            try:
+                req = lambda u: urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": ua}), timeout=20).read().decode("utf-8", "replace")
+                master = req(line)
+                v = [l for l in master.splitlines() if l and not l.startswith("#")]
+                if not v: raise ValueError("lien expiré ou vide")
+                sub = req(v[0]) if v[0].startswith("http") else ""
+                print(f"  [OK ] {name}")
+            except Exception as e:
+                print(f"  [NON] {name}  {e}")
+            name = None
+
 for name, urls in channels():
     print(f"=== {name}")
     for raw in urls:
@@ -41,3 +62,6 @@ for name, urls in channels():
             print(f"        VLC : {signed}")
         except Exception as e:
             print(f"  [NON] {short}  {e}")
+
+print("=== Chaînes ParaTV (ajoutées automatiquement à la suite dans l'app)")
+check_paratv()

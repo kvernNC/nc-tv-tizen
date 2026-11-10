@@ -8,22 +8,31 @@ sans passer par le site web, avec quelques chaînes France TV et une chaîne Tar
 | N° | Chaîne | État |
 |---|---|---|
 | 1 | NC La 1ère | ✅ vérifiée (version « monde » ; versions locales essayées d'abord) |
-| 2 | franceinfo | ✅ vérifiée |
-| 3 | TV5 Monde | ✅ vérifiée |
-| 4 | France 24 | ❓ refusée depuis l'étranger, à tester depuis la Calédonie |
-| 5 | Arte | ❓ idem |
-| 6 | Réunion La 1ère | ❓ idem |
-| 7 | Taratata | ✅ vérifiée : prestations au hasard de mytaratata.com (1994 → aujourd'hui), enchaînées en continu, jusqu'en 720p |
+| 2 à 5 | France 2, 3, 4, 5 | ❓ refusées hors de France, à tester depuis la Calédonie |
+| 6 | franceinfo | ✅ vérifiée |
+| 7 | Taratata | ✅ prestations au hasard de mytaratata.com, en continu, jusqu'en 720p |
+| 8 | Arte | ❓ à tester |
+| 9 | TV5 Monde | ✅ vérifiée |
+| 10 | France 24 | ❓ à tester |
+| 11 | Réunion La 1ère | ❓ à tester |
+| 12 et + | Chaînes ParaTV : TF1, LCP, TMC, TFX, Gulli, BFM TV, CNews, LCI, CStar, T18, NOVO19, TF1 Séries Films, L'Équipe, RMC Story, RMC Découverte, Canal 32, Sport en France, Le Figaro TV, Canal+ en clair, Public Sénat, Europe 1 TV… | ❓ à tester |
 
-La chaîne Taratata choisit une émission au hasard, puis une prestation (sans les interviews),
-affiche l'artiste et le titre, et prépare la suivante pendant la lecture. Les vidéos sont
-hébergées par mytaratata.com sur le serveur `media.grandprix.tv` (malgré le nom, c'est bien
+**Chaînes 1 à 11** : définies dans `CHANNEL_LIST` (`js/channels.js`), une ligne `{ name, urls }`
+par chaîne France TV « simulcast ». Pour en retirer une, supprimer sa ligne.
+
+**Chaîne Taratata** : choisit une émission au hasard, puis une prestation (sans les
+interviews), affiche l'artiste et le titre, et prépare la suivante pendant la lecture. Les
+vidéos sont hébergées par mytaratata.com sur `media.grandprix.tv` (malgré le nom, c'est bien
 leur hébergeur vidéo), avec le MP4 de `videos.mytaratata.com` en secours.
 
-**Ajouter une chaîne** : une ligne `{ name, urls }` dans `CHANNEL_LIST` (`js/channels.js`).
-Ça ne marche que pour les chaînes servies en « simulcast » par France TV (pas France 2/3/5,
-qui passent par un système de pubs dynamiques). Pour **retirer** une chaîne qui ne
-marche pas chez toi, supprimer sa ligne. Puis refaire le `.wgt` (voir plus bas).
+**Chaînes ParaTV (12 et +)** : au démarrage, l'app télécharge la playlist « France » du
+projet communautaire [ParaTV](https://github.com/Paradise-91/ParaTV), qui régénère plusieurs
+fois par jour des liens signés (ceux de TF1 durent ~4 h). À chaque lancement d'une chaîne,
+l'app relit le fichier ParaTV pour avoir le lien le plus récent ; si une chaîne a plusieurs
+sources (ex. CNews via Canal+ ou Dailymotion), elle prend la première qui répond. Les chaînes
+déjà présentes plus haut sont ignorées. Pour en retirer d'autres, ajouter leur nom simplifié
+(minuscules, sans accents ni espaces, ex. `tfx`, `cstar`) dans `PARATV_SKIP` (`js/paratv.js`).
+⚠️ Ça dépend de ParaTV : si le projet s'arrête ou change sa playlist, ces chaînes tombent.
 
 ## Comment ça marche
 
@@ -41,7 +50,7 @@ marche pas chez toi, supprimer sa ligne. Puis refaire le `.wgt` (voir plus bas).
 | Touche | Action |
 |---|---|
 | CH+ / CH− / ◀ ▶ ▲ ▼ | Chaîne suivante/précédente |
-| 1 à 9 | Aller directement à la chaîne n° |
+| 0 à 9 | Aller directement à la chaîne n° (1 ou 2 chiffres, ex. 1 puis 2 → chaîne 12) |
 | ⏩ / ▶❚❚ | Taratata : passer à la prestation suivante |
 | OK / INFO | Affiche le nom de la chaîne |
 | RETOUR / EXIT | Quitter |
@@ -51,7 +60,7 @@ marche pas chez toi, supprimer sa ligne. Puis refaire le `.wgt` (voir plus bas).
 ```
 python3 tools/test_stream.py
 ```
-Ce script teste chaque chaîne de `js/channels.js` depuis chez toi (`[OK ]` / `[NON]`) et
+Ce script teste chaque chaîne de `js/channels.js` et de la playlist ParaTV depuis chez toi (`[OK ]` / `[NON]`) et
 donne une URL à coller dans VLC. Si une version locale de NC La 1ère répond `[OK ]`, l'app
 l'utilisera automatiquement.
 

@@ -68,15 +68,26 @@ var CHANNEL_LIST = [
       SIMULCAST + '1er_Nouvelle_Caledonie/hls_local_1er_NC/1er_Nouvelle_Caledonie.m3u8',  // locale (devinée)
       SIMULCAST + '1er_Nouvelle_Caledonie/hls_monde_1er_NC/1er_Nouvelle_Caledonie.m3u8'   // monde (vérifiée)
   ] },
-  { name: 'franceinfo',      urls: [SIMULCAST_P + 'France_Info/hls_monde_frinfo/France_Info.m3u8'] },   // vérifiée
-  { name: 'TV5 Monde',       urls: [SIMULCAST_MEDIAS + 'TV5_Monde/hls_tv5_monde/TV5_Monde.m3u8'] },     // vérifiée
-  { name: 'France 24',       urls: [SIMULCAST_MEDIAS + 'France_24/hls_fr24/France_24.m3u8'] },          // à tester
-  { name: 'Arte',            urls: [SIMULCAST_MEDIAS + 'Arte/hls_arte/Arte.m3u8'] },                    // à tester
-  { name: 'Réunion La 1ère', urls: [SIMULCAST + '1er_Reunion/hls_monde_1er_Reu/1er_Reunion.m3u8'] }     // à tester
+  { name: 'France 2',        urls: [SIMULCAST_P + 'France_2/hls_fr2/France_2.m3u8'] },                // à tester (France seulement ?)
+  { name: 'France 3',        urls: [SIMULCAST_P + 'France_3/hls_fr3/France_3.m3u8'] },                // à tester
+  { name: 'France 4',        urls: [SIMULCAST_P + 'France_4/hls_fr4/France_4.m3u8'] },                // à tester
+  { name: 'France 5',        urls: [SIMULCAST_P + 'France_5/hls_fr5/France_5.m3u8'] },                // à tester
+  { name: 'franceinfo',      urls: [SIMULCAST_P + 'France_Info/hls_monde_frinfo/France_Info.m3u8'] }, // vérifiée
+  { name: 'Taratata', taratata: true },  // prestations au hasard (voir js/taratata.js)
+  { name: 'Arte',            urls: [SIMULCAST_MEDIAS + 'Arte/hls_arte/Arte.m3u8'] },                  // à tester
+  { name: 'TV5 Monde',       urls: [SIMULCAST_MEDIAS + 'TV5_Monde/hls_tv5_monde/TV5_Monde.m3u8'] },   // vérifiée
+  { name: 'France 24',       urls: [SIMULCAST_MEDIAS + 'France_24/hls_fr24/France_24.m3u8'] },        // à tester
+  { name: 'Réunion La 1ère', urls: [SIMULCAST + '1er_Reunion/hls_monde_1er_Reu/1er_Reunion.m3u8'] }   // à tester
 ];
 
 // Jeton valable ~6 h : relance propre toutes les 5 h.
 var CHANNELS = CHANNEL_LIST.map(function (c) {
+  if (c.taratata) return {
+    name: 'Taratata',
+    continuous: true,
+    resolve: function () { return Taratata.next(); },
+    prefetch: function () { Taratata.prefetch(); }
+  };
   return {
     name: c.name,
     refreshMs: 5 * 60 * 60 * 1000,
@@ -86,12 +97,4 @@ var CHANNELS = CHANNEL_LIST.map(function (c) {
       return firstWorking(order).then(function (r) { c.best = r.raw; return r.signed; });
     }
   };
-});
-
-// Chaîne Taratata : prestations au hasard, enchaînées en continu.
-CHANNELS.push({
-  name: 'Taratata',
-  continuous: true,
-  resolve: function () { return Taratata.next(); },
-  prefetch: function () { Taratata.prefetch(); }
 });
