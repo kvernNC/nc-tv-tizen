@@ -85,13 +85,39 @@ var CHANNEL_LIST = [
   { name: 'TV5 Monde',       logo: 'https://static-cdn.tv.sfr.net/data/logos/tv_services/TV5_Monde_color.png?h=100',
     epg: { sfr: '205' },  urls: [SIMULCAST_MEDIAS + 'TV5_Monde/hls_tv5_monde/TV5_Monde.m3u8'] },   // vérifiée
   { name: 'France 24',       logo: 'https://i.imgur.com/yAiTedt.png',
-    epg: { sfr: '529' },  urls: [SIMULCAST_MEDIAS + 'France_24/hls_fr24/France_24.m3u8'] }         // vérifiée
+    epg: { sfr: '529' },  urls: [SIMULCAST_MEDIAS + 'France_24/hls_fr24/France_24.m3u8'] },        // vérifiée
+  // Dernier JT de NC La 1ère (19h30 / 12h00) en replay, puis les éditions précédentes (js/replay.js).
+  { name: 'JT NC La 1ère', replay: true, logo: 'https://i.imgur.com/BJgNq21.png' },
+  // Radios calédoniennes (adresses de l'annuaire radio-browser.info).
+  { name: 'NC La 1ère Radio', logo: 'https://i.imgur.com/BJgNq21.png',
+    radio: 'https://nouvelle-caledonie.ice.infomaniak.ch/nouvelle-caledonie-128.mp3' },
+  { name: 'Radio Rythme Bleu', radio: 'https://webradio.lagoon.nc/rrb' },
+  { name: 'Radio Djiido',      radio: 'http://radiodjiido.nc:8002/' },
+  { name: 'NIA Pacifique', logo: 'https://nia.nc/static/icons/apple-touch-icon.png',
+    radio: 'https://radio.nia.nc/radio/8000/pacific-hq-stream.aac' }
 ];
 
 // Jeton valable ~6 h : relance propre toutes les 5 h.
 var CHANNELS = CHANNEL_LIST.map(function (c) {
+  if (c.replay) return {
+    name: c.name,
+    logo: c.logo,
+    continuous: true,
+    resolve: function () { return Replay.resolve(); },
+    advance: function () { Replay.advance(); },
+    reset: function () { Replay.reset(); },
+    info: function () { return Replay.info(); }
+  };
+  if (c.radio) return {
+    name: c.name,
+    logo: c.logo,
+    radio: true,
+    resolve: function () { return Promise.resolve({ url: c.radio, title: '' }); },
+    info: function () { return Promise.resolve({ text: 'Radio en direct' }); }
+  };
   if (c.taratata) return {
     name: 'Taratata',
+    info: function () { return Promise.resolve({ text: 'Prestations au hasard, en continu' }); },
     logo: c.logo,
     continuous: true,
     resolve: function () { return Taratata.next(); },

@@ -9,6 +9,13 @@
 </head>
 <body>
   <object id="av-player" type="application/avplayer"></object>
+  <div id="radio" class="hidden">
+    <div id="radio-logo-box"><img id="radio-logo" alt=""><div id="radio-letter"></div></div>
+    <div id="radio-name"></div>
+    <div id="radio-now">Radio en direct</div>
+  </div>
+  <div id="subs" class="hidden"></div>
+  <div id="toast" class="hidden"></div>
   <div id="osd" class="hidden">
     <div id="osd-channel"></div>
     <div id="osd-title"></div>
@@ -24,6 +31,7 @@
   <div id="status" class="hidden"><div class="spinner"></div><span id="status-text"></span></div>
   <script src="js/channels.js"></script>
   <script src="js/taratata.js"></script>
+  <script src="js/replay.js"></script>
   <script src="js/paratv.js"></script>
   <script src="js/epg.js"></script>
   <script src="js/mosaic.js"></script>

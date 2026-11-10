@@ -54,13 +54,39 @@ var Epg = (function () {
     return null;
   }
 
+  // Programme suivant : celui qui commence le plus tôt après la fin de p (dans les 6 h).
+  function findNext(list, p) {
+    var best = null;
+    (list || []).forEach(function (x) {
+      if (x.start >= p.end - 60000 && x.start < p.end + 6 * 3600000 && x !== p && (!best || x.start < best.start)) best = x;
+    });
+    return best;
+  }
+
+  function withNext(p, list) {
+    if (!p) return null;
+    var c = {};
+    for (var k in p) c[k] = p[k];
+    c.next = findNext(list, p);
+    return c;
+  }
+
   function sfrNow(id) {
     var t = Date.now();
     return loadSfrDay(parisDayKey(t)).then(function (day) {
       var p = findAt(day[id], t);
-      if (p) return p;
+      if (p) return { p: p, list: day[id] };
       // Programme commencé la veille (autour de minuit à Paris).
-      return loadSfrDay(parisDayKey(t - 6 * 3600000)).then(function (prev) { return findAt(prev[id], t); });
+      return loadSfrDay(parisDayKey(t - 6 * 3600000)).then(function (prev) {
+        return { p: findAt(prev[id], t), list: prev[id] };
+      });
+    }).then(function (r) {
+      var cur = withNext(r.p, r.list);
+      if (!cur || cur.next) return cur;
+      // Le suivant est dans le fichier du lendemain (programme en cours à cheval sur minuit).
+      return loadSfrDay(parisDayKey(cur.end)).then(function (d) {
+        cur.next = findNext(d[id], cur); return cur;
+      }).catch(function () { return cur; });
     });
   }
 
@@ -89,8 +115,9 @@ var Epg = (function () {
         return slots;
       });
     return fromCache.then(function (slots) {
-      var p = findAt(slots, t);
-      if (p && p.subtitle && /^(Émission|Épisode) du /.test(p.subtitle)) p.subtitle = ''; // sans intérêt
+      var p = withNext(findAt(slots, t), slots);
+      var boring = /^(Émission|Épisode|Édition) du /;  // sans intérêt
+      if (p && boring.test(p.subtitle)) p.subtitle = '';
       return p;
     });
   }

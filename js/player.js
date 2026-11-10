@@ -9,6 +9,29 @@ var Player = (function () {
   var hasAndroid = typeof Android !== 'undefined' && Android.play;
   var video = null;
   var cb = {};
+  var subsOn = false, subsTimer = null;
+
+  // Sous-titres affichés par nous (Tizen : AVPlay donne le texte, on l'affiche).
+  function showSub(text, ms) {
+    var el = document.getElementById('subs');
+    if (!el) return;
+    clearTimeout(subsTimer);
+    text = (text || '').replace(/<[^>]+>/g, '').replace(/\s*\n\s*/g, '\n').trim();
+    if (!subsOn || !text) { el.className = 'hidden'; return; }
+    el.textContent = text;
+    el.className = '';
+    subsTimer = setTimeout(function () { el.className = 'hidden'; }, Math.max(1000, ms || 3000));
+  }
+
+  function applyTizenSubs() {
+    try {
+      var tracks = webapis.avplay.getTotalTrackInfo(), text = null;
+      for (var i = 0; i < tracks.length; i++) if (tracks[i].type === 'TEXT') { text = tracks[i]; break; }
+      if (text && subsOn) webapis.avplay.setSelectTrack('TEXT', text.index);
+      webapis.avplay.setSilentSubtitle(!subsOn);
+    } catch (e) { console.log('[nctv] sous-titres indisponibles : ' + e.message); }
+    if (!subsOn) showSub('');
+  }
 
   if (hasAndroid) {
     // La vidéo est affichée SOUS la page : fond transparent, pas d'objet AVPlay.
@@ -24,6 +47,7 @@ var Player = (function () {
         else if (type === 'playing') cb.onPlaying && cb.onPlaying();
         else if (type === 'ended') cb.onEnded ? cb.onEnded() : (cb.onError && cb.onError(new Error('Fin du flux')));
         else if (type === 'error') cb.onError && cb.onError(new Error('Erreur lecteur : ' + detail));
+        else if (type === 'meta') cb.onMeta && cb.onMeta(detail);
       }
     };
   }
@@ -50,9 +74,11 @@ var Player = (function () {
         onbufferingcomplete: function () { cb.onBuffering && cb.onBuffering(false); },
         onstreamcompleted: function () { cb.onEnded ? cb.onEnded() : (cb.onError && cb.onError(new Error('Fin du flux'))); },
         onerror: function (type) { cb.onError && cb.onError(new Error('Erreur lecteur : ' + type)); },
-        onevent: function () {}
+        onevent: function () {},
+        onsubtitlechange: function (duration, text) { showSub(text, duration); }
       });
       webapis.avplay.prepareAsync(function () {
+        applyTizenSubs();
         webapis.avplay.play();
         cb.onPlaying && cb.onPlaying();
       }, function (err) {
@@ -81,10 +107,19 @@ var Player = (function () {
   }
 
   function stop() {
+    showSub('');
     if (hasAndroid) Android.stop();
     else if (hasAvplay) closeAv();
     else if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
   }
 
-  return { play: play, stop: stop };
+  function setSubtitles(on) {
+    subsOn = !!on;
+    if (hasAndroid) { if (Android.setSubtitles) Android.setSubtitles(subsOn); }
+    else if (hasAvplay) applyTizenSubs();
+    else if (video) for (var i = 0; i < video.textTracks.length; i++) video.textTracks[i].mode = subsOn ? 'showing' : 'hidden';
+    if (!subsOn) showSub('');
+  }
+
+  return { play: play, stop: stop, setSubtitles: setSubtitles };
 })();

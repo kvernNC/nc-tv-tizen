@@ -20,13 +20,16 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
 import androidx.annotation.OptIn;
+import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
+import androidx.media3.common.Metadata;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.extractor.metadata.icy.IcyInfo;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerView;
@@ -70,6 +73,7 @@ public class MainActivity extends Activity {
         KEYS.put(KeyEvent.KEYCODE_MEDIA_NEXT, 10233);
         KEYS.put(KeyEvent.KEYCODE_MEDIA_PLAY, 415);
         KEYS.put(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 10252);
+        KEYS.put(KeyEvent.KEYCODE_CAPTIONS, 10221);
         for (int i = 0; i <= 9; i++) {
             KEYS.put(KeyEvent.KEYCODE_0 + i, 48 + i);
             KEYS.put(KeyEvent.KEYCODE_NUMPAD_0 + i, 48 + i);
@@ -99,6 +103,7 @@ public class MainActivity extends Activity {
 
         player = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(player);
+        applySubtitles(false);   // désactivés tant que le JavaScript ne les demande pas
         player.addListener(new Player.Listener() {
             @Override
             public void onPlaybackStateChanged(int state) {
@@ -112,6 +117,17 @@ public class MainActivity extends Activity {
                     }
                 } else if (state == Player.STATE_ENDED) {
                     send("ended", null);
+                }
+            }
+
+            @Override
+            public void onMetadata(Metadata metadata) {
+                // Radios : titre en cours transmis dans le flux (ICY).
+                for (int i = 0; i < metadata.length(); i++) {
+                    Metadata.Entry e = metadata.get(i);
+                    if (e instanceof IcyInfo && ((IcyInfo) e).title != null) {
+                        send("meta", ((IcyInfo) e).title);
+                    }
                 }
             }
 
@@ -161,6 +177,15 @@ public class MainActivity extends Activity {
         v.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    }
+
+    /** Sous-titres : piste texte française (ou codes qsa/qsm de franceinfo), ou rien. */
+    private void applySubtitles(boolean on) {
+        player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon()
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !on)
+                .setPreferredTextLanguages("fr", "fra", "qsa", "qsm")
+                .setSelectUndeterminedTextLanguage(true)
+                .build());
     }
 
     /** Envoie un événement du lecteur au JavaScript. */
@@ -230,6 +255,11 @@ public class MainActivity extends Activity {
                 player.stop();
                 player.clearMediaItems();
             });
+        }
+
+        @JavascriptInterface
+        public void setSubtitles(boolean on) {
+            ui.post(() -> applySubtitles(on));
         }
 
         @JavascriptInterface

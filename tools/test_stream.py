@@ -18,7 +18,7 @@ def channels():
     src = open(os.path.join(ROOT, "js", "channels.js"), encoding="utf-8").read()
     consts = dict(re.findall(r"var (\w+) = '([^']+)';", src))
     block = src[src.index("var CHANNEL_LIST"):]
-    for name, body in re.findall(r"\{ name: '([^']+)',\s*urls: \[(.*?)\]\s*\}", block, re.S):
+    for name, body in re.findall(r"\{ name: '([^']+)',(?:(?!\{ name:).)*?urls: \[(.*?)\]", block, re.S):
         urls = [consts[c] + path for c, path in re.findall(r"(\w+) \+ '([^']+)'", body)]
         yield name, urls
 

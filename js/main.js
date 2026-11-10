@@ -1,13 +1,46 @@
 (function () {
   var KEY = { ENTER: 13, LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, BACK: 10009,
               CH_UP: 427, CH_DOWN: 428, INFO: 457, EXIT: 10182,
-              FF: 417, NEXT: 10233, PLAY: 415, PLAYPAUSE: 10252 };
+              FF: 417, NEXT: 10233, PLAY: 415, PLAYPAUSE: 10252, CAPTION: 10221 };
   var current = 0;
   var refreshTimer = null, retryTimer = null, osdTimer = null;
   var retryDelay = 3000;      // backoff : 3 s, 6 s, 12 s ... max 60 s
   var playToken = 0;          // invalide les callbacks d'une lecture précédente
 
   function $(id) { return document.getElementById(id); }
+
+  // ---- Réglages mémorisés sur la TV ----
+  function load(k, d) { try { var v = localStorage.getItem('nctv.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem('nctv.' + k, JSON.stringify(v)); } catch (e) {} }
+  var subsOn = load('subs', false);
+
+  var toastTimer = null;
+  function toast(text) {
+    $('toast').textContent = text;
+    $('toast').className = '';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $('toast').className = 'hidden'; }, 2500);
+  }
+
+  function toggleSubs() {
+    subsOn = !subsOn;
+    save('subs', subsOn);
+    Player.setSubtitles(subsOn);
+    toast(subsOn ? 'Sous-titres activés (si la chaîne en propose)' : 'Sous-titres désactivés');
+  }
+
+  // ---- Écran des radios ----
+  function showRadio(ch) {
+    if (!ch.radio) { $('radio').className = 'hidden'; return; }
+    var logo = $('radio-logo');
+    $('radio-name').textContent = ch.name;
+    $('radio-now').textContent = 'Radio en direct';
+    $('radio-letter').textContent = ch.name.charAt(0);
+    logo.style.display = ch.logo ? '' : 'none';
+    $('radio-letter').style.display = ch.logo ? 'none' : '';
+    if (ch.logo) { logo.onerror = function () { logo.style.display = 'none'; $('radio-letter').style.display = ''; }; logo.src = ch.logo; }
+    $('radio').className = '';
+  }
 
   function showStatus(text, isError) {
     if (Mosaic.isOpen()) return;
@@ -23,8 +56,9 @@
     $('osd-title').textContent = nowTitle;
     $('osd-sub').textContent = '';
     if (!nowTitle) showProgram(CHANNELS[current]);
+    var ch = CHANNELS[current];
     $('osd-hint').textContent = 'OK : mosaïque · CH+/CH− : chaîne' +
-      (CHANNELS[current].continuous ? ' · ⏩ ou ▶❚❚ : prestation suivante' : '') + ' · RETOUR : quitter';
+      (ch.continuous ? ' · ⏩ ou ▶❚❚ : ' + (ch.advance ? 'JT précédent' : 'prestation suivante') : '') + ' · RETOUR : quitter';
     $('osd').className = '';
     clearTimeout(osdTimer);
     osdTimer = setTimeout(function () { $('osd').className = 'hidden'; }, 6000);
@@ -35,7 +69,8 @@
     Epg.now(ch).then(function (p) {
       if (!p || CHANNELS[current] !== ch || nowTitle) return;
       $('osd-title').textContent = p.title;
-      $('osd-sub').textContent = Epg.hhmm(p.start) + ' – ' + Epg.hhmm(p.end) + (p.subtitle ? '  ·  ' + p.subtitle : '');
+      $('osd-sub').textContent = Epg.hhmm(p.start) + ' – ' + Epg.hhmm(p.end) + (p.subtitle ? '  ·  ' + p.subtitle : '') +
+        (p.next ? '     Ensuite : ' + Epg.hhmm(p.next.start) + ' ' + p.next.title : '');
     });
   }
 
@@ -46,6 +81,7 @@
     var token = ++playToken;
     clearTimers();
     nowTitle = '';
+    showRadio(ch);
     showOsd();
     showStatus('Connexion à ' + ch.name + '…');
 
@@ -65,7 +101,8 @@
           // Le jeton expire : on relance avant qu'il ne soit refusé.
           if (ch.refreshMs) refreshTimer = setTimeout(start, ch.refreshMs);
         },
-        onEnded: ch.continuous ? function () { if (token === playToken) start(); } : null,
+        onEnded: ch.continuous ? function () { if (token === playToken) { if (ch.advance) ch.advance(); start(); } } : null,
+        onMeta: function (title) { if (token === playToken && ch.radio && title) $('radio-now').textContent = '♪ ' + title; },
         onError: function (e) { if (token === playToken) scheduleRetry(e); }
       }, { ua: ua });
     }).catch(function (e) { if (token === playToken) scheduleRetry(e); });
@@ -85,6 +122,7 @@
     if (index === current) { showOsd(); return; }
     if (index < 0 || index >= CHANNELS.length) return;
     current = index;
+    if (CHANNELS[index].reset) CHANNELS[index].reset();   // replay : on repart du dernier JT
     retryDelay = 3000;
     Player.stop();
     start();
@@ -128,12 +166,19 @@
       case KEY.ENTER:
         $('osd').className = 'hidden';
         hideStatus();
-        Mosaic.show(current, goTo);
+        Mosaic.show(current, goTo, [{
+          label: function () { return 'Sous-titres : ' + (subsOn ? 'activés' : 'désactivés'); },
+          action: toggleSubs
+        }]);
         break;
       case KEY.INFO: showOsd(); break;
       case KEY.FF: case KEY.NEXT: case KEY.PLAY: case KEY.PLAYPAUSE:
-        if (CHANNELS[current].continuous) { Player.stop(); start(); } // prestation suivante
+        if (CHANNELS[current].continuous) {   // prestation suivante / JT précédent
+          if (CHANNELS[current].advance) CHANNELS[current].advance();
+          Player.stop(); start();
+        }
         break;
+      case KEY.CAPTION: toggleSubs(); break;
       case KEY.BACK: case KEY.EXIT: quit(); break;
       default:
         if (e.keyCode >= 48 && e.keyCode <= 57) { typeDigit(e.keyCode - 48); break; } // 0 à 9
@@ -153,11 +198,11 @@
   window.__appVisible = function () { if (Mosaic.isOpen()) Mosaic.hide(); start(); };
 
   window.addEventListener('load', function () {
-    try {
-      ['ChannelUp', 'ChannelDown', 'Info', 'MediaFastForward', 'MediaTrackNext', 'MediaPlay', 'MediaPlayPause', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(function (k) {
-        tizen.tvinputdevice.registerKey(k);
-      });
-    } catch (e) { /* hors TV */ }
+    ['ChannelUp', 'ChannelDown', 'Info', 'MediaFastForward', 'MediaTrackNext', 'MediaPlay', 'MediaPlayPause',
+     'Caption', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(function (k) {
+      try { tizen.tvinputdevice.registerKey(k); } catch (e) { /* touche absente ou hors TV */ }
+    });
+    Player.setSubtitles(subsOn);
     start();
     // Chaînes ParaTV ajoutées à la suite, en arrière-plan.
     ParaTV.load().then(function (list) {

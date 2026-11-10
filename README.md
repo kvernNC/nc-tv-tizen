@@ -17,9 +17,11 @@ mosaïque pour zapper et le programme en cours.
 | 8 | Arte |
 | 9 | TV5 Monde |
 | 10 | France 24 |
-| 11 et + | TF1, LCP, TMC, TFX, Gulli, BFM TV, CNews, LCI, CStar, T18, NOVO19, TF1 Séries Films, L'Équipe, Sport en France, Le Figaro TV, Canal+ en clair, Public Sénat, Europe 1 TV… |
+| 11 | JT NC La 1ère en replay : le dernier JT (19h30 ou 12h00), puis les précédents |
+| 12 à 15 | Radios : NC La 1ère Radio, Radio Rythme Bleu, Radio Djiido, NIA Pacifique |
+| 16 et + | TF1, LCP, TMC, TFX, Gulli, BFM TV, CNews, LCI, CStar, T18, NOVO19, TF1 Séries Films, L'Équipe, Sport en France, Le Figaro TV, Canal+ en clair, Public Sénat, Europe 1 TV… |
 
-Les chaînes 11 et suivantes viennent de la playlist du projet
+Les chaînes 16 et suivantes viennent de la playlist du projet
 [ParaTV](https://github.com/Paradise-91/ParaTV) : si ce projet s'arrête, elles disparaissent.
 
 ## Télécommande
@@ -28,9 +30,10 @@ Les chaînes 11 et suivantes viennent de la playlist du projet
 |---|---|
 | OK | Mosaïque des chaînes |
 | CH+ / CH− / ◀ ▶ ▲ ▼ | Chaîne suivante / précédente |
-| 0 à 9 | Aller à la chaîne n° (ex. 1 puis 1 → chaîne 11) |
-| INFO | Chaîne et programme en cours |
-| ⏩ / ▶❚❚ | Taratata : prestation suivante |
+| 0 à 9 | Aller à la chaîne n° (ex. 1 puis 6 → chaîne 16) |
+| INFO | Chaîne, programme en cours et suivant |
+| ⏩ / ▶❚❚ | Taratata : prestation suivante · JT : édition précédente |
+| Sous-titres | Activer / désactiver les sous-titres (aussi dans la mosaïque, dernière case) |
 | RETOUR | Quitter (ou fermer la mosaïque) |
 
 Dans la mosaïque : flèches pour choisir, CH+/CH− pour changer de page, OK pour regarder.
