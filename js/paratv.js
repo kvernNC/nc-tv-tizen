@@ -68,23 +68,61 @@ var ParaTV = (function () {
     return next();
   }
 
-  return {
-    // Renvoie (Promise) des chaînes au format de l'app.
-    load: function () {
-      return httpGetText(PARATV_PLAYLIST + '?t=' + Date.now()).then(function (m3u) {
-        return parse(m3u).map(function (c) {
-          return {
-            name: c.name,
-            logo: c.logo,
-            epg: c.sfr ? { sfr: c.sfr } : null,
-            refreshMs: 0, // en cas d'expiration : erreur -> nouvel essai -> lien frais relu
-            resolve: function () {
-              return firstSource(c.sources).then(function (s) { return { url: s.url, ua: s.ua }; });
-            }
-          };
+  // ParaTV renomme ses fichiers à chaque mise à jour (TF1, TMC, LCI... toutes les ~4 h) :
+  // on garde une fiche par chaîne et on remplace ses adresses quand on relit la playlist.
+  var entries = {};      // clé -> { name, logo, sfr, sources }
+  var lastLoad = 0, pending = null;
+
+  function makeChannel(key) {
+    var e = entries[key];
+    return {
+      name: e.name,
+      logo: e.logo,
+      epg: e.sfr ? { sfr: e.sfr } : null,
+      refreshMs: 0, // en cas d'expiration : erreur -> nouvel essai -> lien frais relu
+      resolve: function () {
+        function attempt() {
+          return firstSource(entries[key].sources).then(function (s) { return { url: s.url, ua: s.ua }; });
+        }
+        // Lien mort ou expiré : on relit la playlist ParaTV (nouveaux noms de fichiers) et on réessaie.
+        return attempt().catch(function () {
+          console.log('[nctv] ' + e.name + ' : lien ParaTV périmé, mise à jour de la playlist');
+          return refresh(true).then(attempt);
         });
+      }
+    };
+  }
+
+  // Relit la playlist ; renvoie les chaînes NOUVELLES (à ajouter dans l'app).
+  function refresh(force) {
+    if (pending) return pending;
+    if (!force && Date.now() - lastLoad < 60000) return Promise.resolve([]);
+    pending = httpGetText(PARATV_PLAYLIST + '?t=' + Date.now()).then(function (m3u) {
+      var added = [];
+      parse(m3u).forEach(function (c) {
+        var key = simplify(c.name);
+        if (entries[key]) {
+          entries[key].sources = c.sources;       // nouvelles adresses
+          entries[key].logo = entries[key].logo || c.logo;
+          entries[key].sfr = entries[key].sfr || c.sfr;
+        } else {
+          entries[key] = { name: c.name, logo: c.logo, sfr: c.sfr, sources: c.sources };
+          added.push(makeChannel(key));
+        }
       });
-    },
+      lastLoad = Date.now();
+      pending = null;
+      return added;
+    }, function (err) { pending = null; throw err; });
+    return pending;
+  }
+
+  return {
+    // Premier chargement : toutes les chaînes ParaTV, au format de l'app.
+    load: function () { return refresh(true); },
+    // Rafraîchissement (veille, minuterie) : renvoie les chaînes apparues entre-temps.
+    refresh: function () { return refresh(true); },
+    age: function () { return lastLoad ? Date.now() - lastLoad : Infinity; },
     _parse: parse
   };
 })();

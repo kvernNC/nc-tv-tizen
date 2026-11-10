@@ -191,11 +191,23 @@
   // et on relance un direct propre au retour.
   function onHidden() { clearTimers(); playToken++; Player.stop(); }
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) onHidden(); else start();
+    if (document.hidden) onHidden(); else window.__appVisible();
   });
   // Android TV : l'app prévient elle-même (onStop / onStart).
   window.__appHidden = onHidden;
-  window.__appVisible = function () { if (Mosaic.isOpen()) Mosaic.hide(); start(); };
+  window.__appVisible = function () {
+    if (Mosaic.isOpen()) Mosaic.hide();
+    if (ParaTV.age() > 15 * 60000) refreshParaTV();   // retour de veille : liens ParaTV sûrement renouvelés
+    start();
+  };
+
+  // Liste ParaTV : on la relit régulièrement (liens renouvelés, chaînes ajoutées).
+  function refreshParaTV() {
+    return ParaTV.refresh().then(function (added) {
+      added.forEach(function (c) { CHANNELS.push(c); });
+      if (added.length) console.log('[nctv] ' + added.length + ' nouvelles chaînes ParaTV');
+    }).catch(function (e) { console.log('[nctv] ParaTV indisponible : ' + e.message); });
+  }
 
   window.addEventListener('load', function () {
     ['ChannelUp', 'ChannelDown', 'Info', 'MediaFastForward', 'MediaTrackNext', 'MediaPlay', 'MediaPlayPause',
@@ -205,9 +217,7 @@
     Player.setSubtitles(subsOn);
     start();
     // Chaînes ParaTV ajoutées à la suite, en arrière-plan.
-    ParaTV.load().then(function (list) {
-      list.forEach(function (c) { CHANNELS.push(c); });
-      console.log('[nctv] ' + list.length + ' chaînes ParaTV ajoutées');
-    }).catch(function (e) { console.log('[nctv] ParaTV indisponible : ' + e.message); });
+    refreshParaTV();
+    setInterval(refreshParaTV, 30 * 60000);
   });
 })();
