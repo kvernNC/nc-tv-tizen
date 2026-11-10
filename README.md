@@ -1,7 +1,23 @@
 # NC TV — direct NC La 1ère sur TV Samsung (Tizen)
 
 Une application Tizen qui ouvre directement le direct de **NC La 1ère** en plein écran,
-sans passer par le site web.
+sans passer par le site web, avec quelques chaînes France TV en plus.
+
+## Chaînes
+
+| N° | Chaîne | État |
+|---|---|---|
+| 1 | NC La 1ère | ✅ vérifiée (version « monde » ; versions locales essayées d'abord) |
+| 2 | franceinfo | ✅ vérifiée |
+| 3 | TV5 Monde | ✅ vérifiée |
+| 4 | France 24 | ❓ refusée depuis l'étranger, à tester depuis la Calédonie |
+| 5 | Arte | ❓ idem |
+| 6 | Réunion La 1ère | ❓ idem |
+
+**Ajouter une chaîne** : une ligne `{ name, urls }` dans `CHANNEL_LIST` (`js/channels.js`).
+Ça ne marche que pour les chaînes servies en « simulcast » par France TV (pas France 2/3/5,
+qui passent par un système de pubs dynamiques). Pour **retirer** une chaîne qui ne
+marche pas chez toi, supprimer sa ligne. Puis refaire le `.wgt` (voir plus bas).
 
 ## Comment ça marche
 
@@ -18,7 +34,8 @@ sans passer par le site web.
 
 | Touche | Action |
 |---|---|
-| CH+ / CH− / ◀ ▶ ▲ ▼ | Chaîne suivante/précédente (quand Caledonia sera ajoutée) |
+| CH+ / CH− / ◀ ▶ ▲ ▼ | Chaîne suivante/précédente |
+| 1 à 9 | Aller directement à la chaîne n° |
 | OK / INFO | Affiche le nom de la chaîne |
 | RETOUR / EXIT | Quitter |
 
@@ -27,8 +44,9 @@ sans passer par le site web.
 ```
 python3 tools/test_stream.py
 ```
-Ce script liste les variantes qui répondent depuis chez toi et donne une URL à coller dans
-VLC. **Si une variante locale répond `[OK ]`, dis-le-moi** : c'est celle que l'app utilisera.
+Ce script teste chaque chaîne de `js/channels.js` depuis chez toi (`[OK ]` / `[NON]`) et
+donne une URL à coller dans VLC. Si une version locale de NC La 1ère répond `[OK ]`, l'app
+l'utilisera automatiquement.
 
 ## Installer sur la TV avec Apps2Samsung (recommandé)
 
@@ -85,11 +103,3 @@ tizen package -t wgt -s <ton_profil_certificat> -- .buildResult
 sdb connect <IP_TV>
 tizen install -n "NC TV.wgt" -- .buildResult
 ```
-
-## Caledonia
-
-Pas encore active (`enabled: false` dans `js/channels.js`) : le site caledonia.nc refuse les
-connexions depuis l'extérieur, je n'ai pas pu voir comment le direct est diffusé.
-Pour l'ajouter, il me faut, depuis la Calédonie : la page du direct ouverte dans Chrome →
-F12 → onglet **Réseau** → filtre `m3u8` → l'URL qui apparaît (et l'en-tête de la page
-si un jeton est visible).

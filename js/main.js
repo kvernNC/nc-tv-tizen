@@ -15,7 +15,7 @@
   function hideStatus() { $('status').className = 'hidden'; }
 
   function showOsd() {
-    $('osd-channel').textContent = CHANNELS[current].name;
+    $('osd-channel').textContent = (current + 1) + '  ' + CHANNELS[current].name;
     $('osd').className = '';
     clearTimeout(osdTimer);
     osdTimer = setTimeout(function () { $('osd').className = 'hidden'; }, 4000);
@@ -49,14 +49,17 @@
   function scheduleRetry(err) {
     console.log('[nctv] ' + err.message);
     clearTimers();
-    showStatus(err.message + ' — nouvel essai dans ' + Math.round(retryDelay / 1000) + ' s', true);
+    showStatus(CHANNELS[current].name + ' : ' + err.message + ' — nouvel essai dans ' + Math.round(retryDelay / 1000) + ' s', true);
     retryTimer = setTimeout(start, retryDelay);
     retryDelay = Math.min(retryDelay * 2, 60000);
   }
 
-  function zap(delta) {
-    if (CHANNELS.length < 2) { showOsd(); return; }
-    current = (current + delta + CHANNELS.length) % CHANNELS.length;
+  function zap(delta) { goTo((current + delta + CHANNELS.length) % CHANNELS.length); }
+
+  function goTo(index) {
+    if (index === current) { showOsd(); return; }
+    if (index < 0 || index >= CHANNELS.length) return;
+    current = index;
     retryDelay = 3000;
     Player.stop();
     start();
@@ -74,7 +77,9 @@
       case KEY.CH_DOWN: case KEY.DOWN: case KEY.LEFT: zap(-1); break;
       case KEY.ENTER: case KEY.INFO: showOsd(); break;
       case KEY.BACK: case KEY.EXIT: quit(); break;
-      default: return;
+      default:
+        if (e.keyCode >= 49 && e.keyCode <= 57) { goTo(e.keyCode - 49); break; } // touches 1 à 9
+        return;
     }
     e.preventDefault();
   });
@@ -88,7 +93,7 @@
 
   window.addEventListener('load', function () {
     try {
-      ['ChannelUp', 'ChannelDown', 'Info'].forEach(function (k) {
+      ['ChannelUp', 'ChannelDown', 'Info', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(function (k) {
         tizen.tvinputdevice.registerKey(k);
       });
     } catch (e) { /* hors TV */ }

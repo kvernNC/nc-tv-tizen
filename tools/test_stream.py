@@ -1,27 +1,43 @@
 #!/usr/bin/env python3
 """
-Test à lancer sur ton PC (depuis la Calédonie) : vérifie quelles variantes du
-flux NC La 1ère répondent, et affiche l'URL signée à coller dans VLC.
+Test à lancer sur ton PC (depuis la Calédonie) : pour chaque chaîne de
+js/channels.js, indique quelles adresses répondent et donne une URL pour VLC.
 Aucune dépendance : python3 tools/test_stream.py
 """
-import json, urllib.parse, urllib.request
+import json, os, re, urllib.parse, urllib.request
 
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOKEN = "https://hdfauth.ftven.fr/esi/TA?format=json&url="
-BASE = "https://simulcast-b.ftven.fr/simulcast/1er_Nouvelle_Caledonie/{}/1er_Nouvelle_Caledonie.m3u8"
-VARIANTS = ["hls_1er_NC", "hls_nc_1er_NC", "hls_local_1er_NC", "hls_monde_1er_NC"]
 UA = {"User-Agent": "Mozilla/5.0"}
 
 def get(url):
     with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=15) as r:
-        return r.status, r.read().decode("utf-8", "replace")
+        return r.read().decode("utf-8", "replace")
 
-for v in VARIANTS:
-    raw = BASE.format(v)
-    try:
-        signed = json.loads(get(TOKEN + urllib.parse.quote(raw, safe=""))[1])["url"]
-        status, body = get(signed)
-        res = [l.split("RESOLUTION=")[1].split(",")[0] for l in body.splitlines() if "RESOLUTION=" in l]
-        print(f"[OK ] {v:18} résolutions: {', '.join(res)}")
-        print(f"      URL VLC : {signed}\n")
-    except Exception as e:
-        print(f"[NON] {v:18} {e}")
+def channels():
+    src = open(os.path.join(ROOT, "js", "channels.js"), encoding="utf-8").read()
+    consts = dict(re.findall(r"var (\w+) = '([^']+)';", src))
+    block = src[src.index("var CHANNEL_LIST"):]
+    for name, body in re.findall(r"\{ name: '([^']+)',\s*urls: \[(.*?)\]\s*\}", block, re.S):
+        urls = [consts[c] + path for c, path in re.findall(r"(\w+) \+ '([^']+)'", body)]
+        yield name, urls
+
+for name, urls in channels():
+    print(f"=== {name}")
+    for raw in urls:
+        short = raw.split("/simulcast/")[-1]
+        try:
+            signed = json.loads(get(TOKEN + urllib.parse.quote(raw, safe="")))["url"]
+            master = get(signed)
+            variants = [l for l in master.splitlines() if l and not l.startswith("#")]
+            if not variants:
+                raise ValueError("playlist vide ou refusée")
+            v = variants[-1] if variants[-1].startswith("http") else signed.rsplit("/", 1)[0] + "/" + variants[-1]
+            segs = [l for l in get(v).splitlines() if l and not l.startswith("#")]
+            s = segs[-1] if segs[-1].startswith("http") else v.rsplit("/", 1)[0] + "/" + segs[-1]
+            urllib.request.urlopen(urllib.request.Request(s, headers=UA), timeout=20).read(1000)
+            res = re.findall(r"RESOLUTION=(\d+x\d+)", master)
+            print(f"  [OK ] {short}  ({res[-1] if res else '?'})")
+            print(f"        VLC : {signed}")
+        except Exception as e:
+            print(f"  [NON] {short}  {e}")
