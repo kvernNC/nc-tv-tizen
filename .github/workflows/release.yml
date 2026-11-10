@@ -20,7 +20,8 @@ jobs:
       - name: Lire la version
         id: v
         run: |
-          VERSION=$(grep -oP '<widget[^>]* version="\K[^"]+' config.xml)
+          VERSION=$(python3 -c "import xml.etree.ElementTree as E; print(E.parse('config.xml').getroot().get('version'))")
+          test -n "$VERSION" -a "$VERSION" != "None"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
           echo "Version : $VERSION"
 
