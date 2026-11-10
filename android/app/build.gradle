@@ -1,0 +1,82 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Version lue dans le config.xml de l'app Tizen : les deux versions restent alignées.
+def widget = new XmlSlurper().parse(rootProject.file('../config.xml'))
+def vName = widget.@version.text()
+def vParts = vName.tokenize('.').collect { it as int }
+def vCode = vParts[0] * 10000 + vParts[1] * 100 + vParts[2]
+
+android {
+    namespace 'nc.tv.live'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'nc.tv.live'
+        minSdk 24
+        targetSdk 34
+        versionCode vCode
+        versionName vName
+    }
+
+    // Signature : la clé n'est PAS dans le dépôt. Elle est fournie par les variables
+    // d'environnement NCTV_KEYSTORE (chemin du fichier) et NCTV_KEYSTORE_PASSWORD
+    // (secrets GitHub en CI). Toujours la même clé : les mises à jour s'installent
+    // par-dessus l'ancienne version.
+    def ksPath = System.getenv('NCTV_KEYSTORE')
+    def ksPass = System.getenv('NCTV_KEYSTORE_PASSWORD')
+    def canSign = ksPath && ksPass && file(ksPath).exists()
+
+    signingConfigs {
+        if (canSign) {
+            nctv {
+                storeFile file(ksPath)
+                storePassword ksPass
+                keyAlias 'nctv'
+                keyPassword ksPass
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (canSign) signingConfig signingConfigs.nctv
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main.assets.srcDirs += layout.buildDirectory.dir('generated/web').get().asFile
+    }
+}
+
+// Copie l'app web (la même que sur Tizen) dans les assets : assets/www/...
+def copyWeb = tasks.register('copyWeb', Copy) {
+    from(rootProject.file('..')) {
+        include 'index.html', 'icon.png', 'js/**', 'css/**'
+    }
+    into layout.buildDirectory.dir('generated/web/www')
+}
+tasks.configureEach { t ->
+    if (t.name.startsWith('merge') && t.name.endsWith('Assets') || t.name.startsWith('generate') && t.name.endsWith('Assets')
+            || t.name.contains('Lint') || t.name.startsWith('package')) {
+        t.dependsOn copyWeb
+    }
+}
+
+base {
+    archivesName = 'NC-TV'
+}
+
+dependencies {
+    def media3 = '1.4.1'
+    implementation "androidx.media3:media3-exoplayer:$media3"
+    implementation "androidx.media3:media3-exoplayer-hls:$media3"
+    implementation "androidx.media3:media3-ui:$media3"
+}

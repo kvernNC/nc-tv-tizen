@@ -39,12 +39,33 @@ jobs:
         if: steps.exists.outputs.skip != 'true'
         run: python3 tools/build_wgt.py
 
+      - name: Java 17 (Android)
+        if: steps.exists.outputs.skip != 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Fabriquer l'APK Android TV
+        if: steps.exists.outputs.skip != 'true'
+        working-directory: android
+        env:
+          NCTV_KEYSTORE_B64: ${{ secrets.NCTV_KEYSTORE_B64 }}
+          NCTV_KEYSTORE_PASSWORD: ${{ secrets.NCTV_KEYSTORE_PASSWORD }}
+        run: |
+          test -n "$NCTV_KEYSTORE_B64" || { echo "Secret NCTV_KEYSTORE_B64 manquant"; exit 1; }
+          echo "$NCTV_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/nctv.keystore"
+          export NCTV_KEYSTORE="$RUNNER_TEMP/nctv.keystore"
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --console=plain
+          cp app/build/outputs/apk/release/NC-TV-release.apk ../dist/NC-TV.apk
+
       - name: Publier la release
         if: steps.exists.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ steps.v.outputs.tag }}" dist/NC-TV.wgt \
+          gh release create "${{ steps.v.outputs.tag }}" dist/NC-TV.wgt dist/NC-TV.apk \
             --target "$GITHUB_SHA" \
             --title "NC TV ${{ steps.v.outputs.tag }}" \
-            --notes "Installer : télécharger **NC-TV.wgt** ci-dessous, puis l'installer avec Apps2Samsung (« choisir ton propre fichier .wgt »). Détails dans le README."
+            --notes "**TV Samsung** : NC-TV.wgt, à installer avec Apps2Samsung. **Android TV / Google TV** : NC-TV.apk. Détails dans le README."

@@ -10,6 +10,7 @@
   function $(id) { return document.getElementById(id); }
 
   function showStatus(text, isError) {
+    if (Mosaic.isOpen()) return;
     $('status-text').textContent = text;
     $('status').className = isError ? 'error' : '';
   }
@@ -17,6 +18,7 @@
 
   var nowTitle = '';
   function showOsd() {
+    if (Mosaic.isOpen()) return;
     $('osd-channel').textContent = (current + 1) + '  ' + CHANNELS[current].name;
     $('osd-title').textContent = nowTitle;
     $('osd-sub').textContent = '';
@@ -111,6 +113,7 @@
   function quit() {
     clearTimers();
     Player.stop();
+    if (typeof Android !== 'undefined' && Android.exit) { Android.exit(); return; }
     try { tizen.application.getCurrentApplication().exit(); } catch (e) {}
   }
 
@@ -124,6 +127,7 @@
       case KEY.CH_DOWN: case KEY.DOWN: case KEY.LEFT: zap(-1); break;
       case KEY.ENTER:
         $('osd').className = 'hidden';
+        hideStatus();
         Mosaic.show(current, goTo);
         break;
       case KEY.INFO: showOsd(); break;
@@ -140,10 +144,13 @@
 
   // Application mise en arrière-plan (touche Home, source...) : on coupe,
   // et on relance un direct propre au retour.
+  function onHidden() { clearTimers(); playToken++; Player.stop(); }
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) { clearTimers(); playToken++; Player.stop(); }
-    else start();
+    if (document.hidden) onHidden(); else start();
   });
+  // Android TV : l'app prévient elle-même (onStop / onStart).
+  window.__appHidden = onHidden;
+  window.__appVisible = function () { if (Mosaic.isOpen()) Mosaic.hide(); start(); };
 
   window.addEventListener('load', function () {
     try {

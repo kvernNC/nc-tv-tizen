@@ -1,11 +1,32 @@
 /*
- * Petit wrapper autour de webapis.avplay (lecteur natif Samsung).
- * Hors TV (navigateur PC), on retombe sur une balise <video> pour le debug.
+ * Lecteur vidéo, selon la plateforme :
+ *  - TV Samsung (Tizen) : webapis.avplay (lecteur natif Samsung) ;
+ *  - Android TV : ExoPlayer, piloté via l'objet "Android" fourni par l'app (MainActivity) ;
+ *  - navigateur PC : balise <video> (debug).
  */
 var Player = (function () {
   var hasAvplay = typeof webapis !== 'undefined' && webapis.avplay;
+  var hasAndroid = typeof Android !== 'undefined' && Android.play;
   var video = null;
   var cb = {};
+
+  if (hasAndroid) {
+    // La vidéo est affichée SOUS la page : fond transparent, pas d'objet AVPlay.
+    var obj = document.getElementById('av-player');
+    if (obj) obj.parentNode.removeChild(obj);
+    document.documentElement.style.background = 'transparent';
+    document.body.style.background = 'transparent';
+    // Événements envoyés par ExoPlayer.
+    window.NativePlayer = {
+      onEvent: function (type, detail) {
+        if (type === 'buffering') cb.onBuffering && cb.onBuffering(true);
+        else if (type === 'ready') cb.onBuffering && cb.onBuffering(false);
+        else if (type === 'playing') cb.onPlaying && cb.onPlaying();
+        else if (type === 'ended') cb.onEnded ? cb.onEnded() : (cb.onError && cb.onError(new Error('Fin du flux')));
+        else if (type === 'error') cb.onError && cb.onError(new Error('Erreur lecteur : ' + detail));
+      }
+    };
+  }
 
   function closeAv() {
     try { webapis.avplay.stop(); } catch (e) {}
@@ -15,6 +36,7 @@ var Player = (function () {
   function play(url, callbacks, opts) {
     cb = callbacks || {};
     opts = opts || {};
+    if (hasAndroid) { Android.play(url, opts.ua || ''); return; }
     if (!hasAvplay) return playHtml5(url);
 
     closeAv();
@@ -59,7 +81,8 @@ var Player = (function () {
   }
 
   function stop() {
-    if (hasAvplay) closeAv();
+    if (hasAndroid) Android.stop();
+    else if (hasAvplay) closeAv();
     else if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
   }
 

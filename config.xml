@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets"
-        id="http://local/nctv" version="1.1.0" viewmodes="fullscreen">
+        id="http://local/nctv" version="1.2.0" viewmodes="fullscreen">
     <tizen:application id="NcTvLiveNC.NcTv" package="NcTvLiveNC" required_version="2.3"/>
     <name>NC TV</name>
     <description>Direct de NC La 1ère sur TV Tizen</description>

@@ -1,7 +1,8 @@
 # NC TV
 
-Application pour TV Samsung (Tizen) : le direct de **NC La 1ère** en plein écran, plus une
-trentaine de chaînes, une mosaïque pour zapper et le programme en cours.
+Application pour **TV Samsung (Tizen)** et **Android TV / Google TV** (Chromecast avec
+Google TV…) : le direct de **NC La 1ère** en plein écran, plus une trentaine de chaînes, une
+mosaïque pour zapper et le programme en cours.
 
 ![Mosaïque](docs/mosaique.png)
 
@@ -34,7 +35,10 @@ Les chaînes 11 et suivantes viennent de la playlist du projet
 
 Dans la mosaïque : flèches pour choisir, CH+/CH− pour changer de page, OK pour regarder.
 
-## Installation
+Sur la télécommande de la Chromecast (sans touches chaînes ni chiffres) : ▲ ▼ pour zapper,
+OK pour la mosaïque, RETOUR pour quitter.
+
+## Installation sur TV Samsung
 
 1. Télécharger **NC-TV.wgt** dans la dernière
    [release](https://github.com/kvernNC/nc-tv-tizen/releases/latest).
@@ -46,3 +50,17 @@ Dans la mosaïque : flèches pour choisir, CH+/CH− pour changer de page, OK po
 
 « NC TV » apparaît ensuite dans **Apps** sur la TV. Pour une mise à jour, refaire l'étape 3
 avec la nouvelle version (depuis le même PC).
+
+## Installation sur Android TV / Google TV
+
+1. Activer les options développeur : **Paramètres → Système → À propos**, cliquer 7 fois
+   sur **Build de l'OS Android TV**.
+2. Installer l'app **Downloader** (AFTVnews) depuis le Play Store.
+3. **Paramètres → Applications → Sécurité et restrictions → Sources inconnues** :
+   autoriser **Downloader**.
+4. Dans Downloader, saisir l'adresse
+   `https://github.com/kvernNC/nc-tv-tizen/releases/latest/download/NC-TV.apk`,
+   puis **Installer**.
+
+« NC TV » apparaît dans **Vos applications**. Pour une mise à jour, refaire l'étape 4 :
+la nouvelle version s'installe par-dessus l'ancienne.

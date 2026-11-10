@@ -21,7 +21,7 @@ html, body { margin: 0; width: 1920px; height: 1080px; background: #000; overflo
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---- Mosaïque ---- */
-#mosaic { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+#mosaic { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; z-index: 10;
   background: rgba(8,10,16,.92); }
 #mosaic-head { position: absolute; left: 80px; right: 80px; top: 40px; height: 60px;
   display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: bold; }
