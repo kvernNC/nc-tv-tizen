@@ -69,7 +69,12 @@ l'utilisera automatiquement.
 [Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung) crée le certificat et signe
 l'application tout seul : il suffit de lui donner le fichier `.wgt` **non signé**.
 
-### 1. Fabriquer le fichier `.wgt`
+### 1. Récupérer le fichier `.wgt`
+
+Le plus simple : télécharger **NC-TV.wgt** dans la dernière
+[release](https://github.com/kvernNC/nc-tv-tizen/releases/latest).
+
+Ou le fabriquer soi-même :
 
 ```
 python3 tools/build_wgt.py
@@ -118,4 +123,14 @@ tizen build-web -- .
 tizen package -t wgt -s <ton_profil_certificat> -- .buildResult
 sdb connect <IP_TV>
 tizen install -n "NC TV.wgt" -- .buildResult
+```
+
+## Publier une nouvelle version
+
+Pousser un tag `v…` : GitHub fabrique le `.wgt` (avec ce numéro de version) et publie la
+release automatiquement (`.github/workflows/release.yml`).
+
+```
+git tag v1.0.1
+git push origin v1.0.1
 ```

@@ -1,0 +1,32 @@
+# À chaque tag "v*" poussé (ex. v1.0.1) : fabrique NC-TV.wgt et publie une release GitHub.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mettre la version du tag dans config.xml
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed -i -E "s/(<widget[^>]* version=\")[^\"]+\"/\1${VERSION}\"/" config.xml
+          grep -o 'version="[^"]*"' config.xml | head -1
+
+      - name: Fabriquer le .wgt
+        run: python3 tools/build_wgt.py
+
+      - name: Publier la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/NC-TV.wgt \
+            --title "NC TV $GITHUB_REF_NAME" \
+            --notes "Installer : télécharger **NC-TV.wgt** ci-dessous, puis l'installer avec Apps2Samsung (« choisir ton propre fichier .wgt »). Détails dans le README."
